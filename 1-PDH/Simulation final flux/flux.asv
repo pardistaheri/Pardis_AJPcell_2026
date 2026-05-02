@@ -1,0 +1,55 @@
+function J_PDH=flux(Conc)
+% Reaction 1: Pyruvate dehydrogenase (PDH)- Enzyme
+% PYRm + CoAm + NADm ⇌ ACoAm + CO2 + NADHm + Hm+
+	
+%%% Thermodynamics and pH 
+R = 8.314; %gas constant (J/K/mol)
+T = 310.15; %tempreture in the isolated PDH experiment(K)
+pH_m = 7.5; %pH in the isolated PDH experiment(K)
+drG_PDH=19.5/1000; %standard Gibs free energy of PDH refrence reaction at T=298.15 K, I=0.1, pH=0
+% dGr0 = (dG_ACoA + dG_NADH) - (dG_PYR + dG_CoA + dG_NAD)  %dGr0 is
+% clculated using the dG formation of substrates and product 
+Keq0=exp(-drG_PDH/(R*T)); %standard Keq
+Keq=Keq0*10^(pH_m); %pH-dependent and binding-dependant apparent equilibrium constant
+
+%%% Km parameters 
+KA=2.7e-5; % M Pyruavte 
+KB=1.21e-5; % M Coenzyme A
+KC=3.52e-5; % M NAD
+KD=1.21e-5; % M Acetyl-coenzyme A 
+K_E=1e-05; %M CO2 bindi
+KF=3.52e-5; % M NADH
+
+%%% PDK binding constant
+KHK=1.28e-7; % M H+
+KATP=5.36e-5; % M ATP
+KADP=1.45e-3; % M ADP
+KiA=2.90e-1;  % M Pyruvate
+
+%%% PDP binding constant
+KMg=1.67e-3; % M Mg2+
+KHP=9.66e-8; % M H+
+KCa=1.06e-4; % M Ca2+
+bCa=0.26; % Ca2+ activation constant
+
+Vmaxf=8.4407170e-05;
+%%% Concentration
+A=Conc(1);
+B=Conc(2);
+C=Conc(3);
+D=0;
+E=1.32e-5; % CO2 is a constant (No ODE for CO2) % The effect of CO2 is reflected in estmated Vmax 
+F=0;
+Hm=10^(-pH_m);
+
+Mgm=0.2e-03;
+Cam=0;
+ATPm=0;
+ADPm=0;
+%%% flux 
+PDK = (ATPm./KATP)./((Hm./KHK+KHK./Hm).*(1+(A./KiA)).*(1 +(ATPm./KATP)+(ADPm./KADP)));
+PDP = ((Mgm./KMg) + (bCa.*Cam./KCa))./((Hm./KHP+KHP./Hm).*(1 + (Mgm./KMg) + (Cam./KCa)));
+Vmaxf_prime = Vmaxf/(1+(PDK/PDP));
+
+deno=(1+A/KA)*(1+B/KB+D/KD)*(1+C/KC+F/KF);  
+J_PDH = Vmaxf_prime/KA/KB/KC*(A*B*C-D*E*F/Keq)/deno;
