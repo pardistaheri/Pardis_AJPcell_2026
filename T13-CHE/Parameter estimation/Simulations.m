@@ -1,0 +1,40 @@
+% CI biochemical reaction model fit and simulation
+% the flux for CI reaction in this model was devolped in Audi & Dash lab previously(Xiao et al 2018)
+% Model fitted to data from Bazil et al. 2013
+% experimental condition : temp = 298.15K, pH = 8, deltaSi=0, 
+% The units are as follows Concentration M, Flux mmol/nin, pH= 8.1, Volume =1 ml, Mass in Microg, 5 parameters
+ 
+%%% Compute the free cation and metabolite concentrations and dye fluorescence
+mpar = load('mpar.txt');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%figure 1
+Data = load('Data.txt'); 
+Flux_Data = Data(:,1); %Flux(nmol/min/ug)
+C_data = Data(:,3); %C_Cae (M)
+
+A = [5.12 7.36 8.16 10.32 13.04]; %Cam
+C = [0:0.01:150]; %Cae
+
+for i=1:1:length(A)
+    for j=1:1:length(C)
+        A_tot = A(i)/10^6;
+        C_tot = C(j)/10^6;
+        
+        Conc=[A_tot, C_tot];
+        flux1(i,j)=Model(mpar,Conc)*10^6;
+    end
+end
+h1 = figure(1)
+set(h1,'Position',[10 10 300 300])
+plot(C_data(1:6,:),Flux_Data(1:6,:),'k*',C_data(7:12,:),Flux_Data(7:12,:),'ko',C_data(13:18,:),Flux_Data(13:18,:),'kd',C_data(19:23,:),Flux_Data(19:23,:),'k<',C_data(24:29,:),Flux_Data(24:29,:),'kp',...
+    C,flux1(1,:),'k',C,flux1(2,:),'k',C,flux1(3,:),'k',C,flux1(4,:),'k',C,flux1(5,:),'k','LineWidth',1.5,'MarkerSize',8.0);
+%plot(C,flux1(1,:),'r',C,flux1(2,:),'b',C,flux1(3,:),'g',C,flux1(4,:),'k',C,flux1(5,:),'m','LineWidth',2.0,'MarkerSize',10.0);
+set(gcf,'color','w')
+set(gca,'FontSize',16)
+legend('Ca_m = 5.12 \muM', 'Ca_m = 7.36 \muM','Ca_m = 8.16 \muM','Ca_m = 10.32 \muM','Ca_m = 13.04 \muM');
+xlabel('Ca_e (\muM)')
+ylabel('Flux (nmol/min/mg)')
+ylim([0 30])
+legend box off
+box off
